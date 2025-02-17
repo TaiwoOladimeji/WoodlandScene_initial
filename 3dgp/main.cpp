@@ -278,7 +278,7 @@ void onMotion(int x, int y)
 	if (abs(deltaYaw) > 0.3f || abs(deltaPitch) > 0.3f)
 		return;	// avoid warping side-effects
 
-	// View = Pitch * DeltaPitch * DeltaYaw * Pitch^-1 * View;
+	// View = Pitch * DeltaPitch * DeltaYaw * Pitch^-1 * ffView;
 	constexpr float maxPitch = radians(80.f);
 	float pitch = getPitch(matrixView);
 	float newPitch = glm::clamp(pitch + deltaPitch, -maxPitch, maxPitch);
