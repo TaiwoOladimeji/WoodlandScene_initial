@@ -9,7 +9,7 @@ uniform mat4 matrixModelView;
 
 // Uniforms: Material Colours
 uniform vec3 materialAmbient;
-uniform vec3 materialDiffuse;
+//uniform vec3 materialDiffuse;
 
 in vec3 aVertex;
 in vec3 aNormal;

@@ -109,12 +109,13 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 
 	// setup materials
 	program.sendUniform("materialDiffuse", vec3(1.0f, 1.0f, 1.0f));	// white background for textures
-	program.sendUniform("materialAmbient", vec3(0.1f, 0.1f, 0.1f));
-	glActiveTexture(GL_TEXTURE0);
-
+	//program.sendUniform("materialAmbient", vec3(0.1f, 0.1f, 0.1f));
 	program.sendUniform("lightAmbient.color", vec3(0.1, 0.1, 0.1));
-	program.sendUniform("materialAmbient", vec3/*(1.0, 1.0, 1.0)*/(0.1f, 0.1f, 0.1f));
-
+	program.sendUniform("materialAmbient", vec3/*(1.0, 1.0, 1.0)*/(0.1f, 0.1f, 0.1f)); // DIMMED LIGHT
+	program.sendUniform("lightDir.direction", vec3/*(1.0, 0.5, 1.0)*/ (-1.0f, 1.0f, 1.0f));
+	program.sendUniform("lightDir.diffuse", vec3/*(0.2, 0.2, 0.2)*/(1.0f, 1.0f, 1.0f)); // dimmed white light
+	glActiveTexture(GL_TEXTURE0);
+ 
 	// render the terrain
 	m = matrixView;
 	terrain.render(m);
