@@ -21,7 +21,7 @@ vec3 wolfVel = vec3(0, 0, 0);
 
 // 3D Models
 C3dglTerrain terrain;
-C3dglModel wolf, tree;
+C3dglModel wolf, tree, stone;
 
 // GLSL Objects (Shader Program)
 C3dglProgram program;
@@ -73,6 +73,7 @@ bool init()
 	if (!terrain.load("models\\heightmap.png", 50)) return false;
 	if (!wolf.load("models\\wolf.dae")) return false;
 	if (!tree.load("models\\tree\\tree.3ds")) return false;
+	if (!stone.load("models\\stone.obj")) return false;
 	tree.loadMaterials("models\\tree");
 	tree.getMaterial(0)->loadTexture(GL_TEXTURE1, "models\\tree", "pine-trunk-norm.dds");
 	tree.getMaterial(1)->loadTexture(GL_TEXTURE1, "models\\tree", "pine-leaf-norm.dds");
@@ -111,6 +112,9 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	program.sendUniform("materialAmbient", vec3(0.1f, 0.1f, 0.1f));
 	glActiveTexture(GL_TEXTURE0);
 
+	program.sendUniform("lightAmbient.color", vec3(0.1, 0.1, 0.1));
+	program.sendUniform("materialAmbient", vec3/*(1.0, 1.0, 1.0)*/(0.1f, 0.1f, 0.1f));
+
 	// render the terrain
 	m = matrixView;
 	terrain.render(m);
@@ -144,6 +148,12 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	m = scale(m, vec3(0.01f, 0.01f, 0.01f));
 	m = rotate(m, radians(70.f), vec3(0.f, 1.f, 0.f));
 	tree.render(m);
+
+	//render stone
+	m = matrixView;
+	m = translate(matrixView, /*vec3(-2.2, 0.5, 0.4));*/vec3(-2.6, terrain.getInterpolatedHeight(-2, 1.6), -1));
+	m = scale(m, vec3(0.01f, 0.01f, 0.01f));
+	stone.render(m);
 }
 
 void onRender()
@@ -278,7 +288,7 @@ void onMotion(int x, int y)
 	if (abs(deltaYaw) > 0.3f || abs(deltaPitch) > 0.3f)
 		return;	// avoid warping side-effects
 
-	// View = Pitch * DeltaPitch * DeltaYaw * Pitch^-1 * ffView;
+	// View = Pitch * DeltaPitch * DeltaYaw * Pitch^-1 * View;
 	constexpr float maxPitch = radians(80.f);
 	float pitch = getPitch(matrixView);
 	float newPitch = glm::clamp(pitch + deltaPitch, -maxPitch, maxPitch);
