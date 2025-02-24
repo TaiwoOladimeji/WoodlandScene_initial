@@ -2,7 +2,7 @@
 
 #version 330
 
-// Matrices
+// Matrices/View Matrix
 uniform mat4 matrixProjection;
 uniform mat4 matrixView;
 
@@ -13,8 +13,12 @@ uniform vec3 materialDiffuse;
 in vec4 color;
 out vec4 outColor;
 
+in vec2 texCoord0;
 in vec4 position;
 in vec3 normal;
+
+// Texture
+uniform sampler2D texture0;
 
  // DIRECTIONAL
  struct DIRECTIONAL
@@ -39,5 +43,6 @@ void main(void)
 	// calculate light
 	outColor = color;
 	outColor += DirectionalLight(lightDir);
+	outColor *= texture(texture0, texCoord0);
 
 }

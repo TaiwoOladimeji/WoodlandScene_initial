@@ -23,6 +23,11 @@ vec3 wolfVel = vec3(0, 0, 0);
 C3dglTerrain terrain;
 C3dglModel wolf, tree, stone;
 
+// texture ids
+GLuint idTexTerrain;
+GLuint idTexWolf;
+GLuint idTexStone;
+
 // GLSL Objects (Shader Program)
 C3dglProgram program;
 
@@ -79,6 +84,43 @@ bool init()
 	tree.getMaterial(1)->loadTexture(GL_TEXTURE1, "models\\tree", "pine-leaf-norm.dds");
 	tree.getMaterial(2)->loadTexture(GL_TEXTURE1, "models\\tree", "pine-branch-norm.dds");
 	
+	// create & load textures
+	C3dglBitmap bm;
+	glActiveTexture(GL_TEXTURE0);
+	 
+
+	// Terrain texture
+	bm.load("models/grass.jpg", GL_RGBA);
+	if (!bm.getBits()) return false;
+	glGenTextures(1, &idTexTerrain);
+	glBindTexture(GL_TEXTURE_2D, idTexTerrain);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bm.getWidth(), bm.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bm.getBits());
+
+	// Wolf texture
+	bm.load("models/Wolf.jpg", GL_RGBA);
+	if (!bm.getBits()) return false;
+	glGenTextures(1, &idTexWolf);
+	glBindTexture(GL_TEXTURE_2D, idTexWolf);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bm.getWidth(), bm.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bm.getBits());
+
+	// Stone texture
+	bm.load("models/stone.png", GL_RGBA);
+	if (!bm.getBits()) return false;
+	glGenTextures(1, &idTexStone);
+	glBindTexture(GL_TEXTURE_2D, idTexStone);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bm.getWidth(), bm.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bm.getBits());
+	//glGenTextures(1, &idTexStone);
+	//glBindTexture(GL_TEXTURE_2D, idTexStone);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//BYTE bytes[] = { 255, 255, 255 };
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_BGR, GL_UNSIGNED_BYTE, &bytes);
+
+	// Send the texture info to the shaders
+	program.sendUniform("texture0", 0);
+
 	// Initialise the View Matrix (initial position of the camera)
 	matrixView = lookAt(
 		vec3(-2.0, 1.0, 3.0),
@@ -116,7 +158,8 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	program.sendUniform("lightDir.diffuse", vec3/*(0.2, 0.2, 0.2)*/(1.0f, 1.0f, 1.0f)); // dimmed white light
 	glActiveTexture(GL_TEXTURE0);
  
-	// render the terrain
+	// render the terrain and textures
+	glBindTexture(GL_TEXTURE_2D, idTexTerrain);
 	m = matrixView;
 	terrain.render(m);
 
@@ -132,7 +175,15 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	// This vector automatically amends the Y-coordinate of the wolf according to the terrain elevation
 	vec3 amendY = vec3(vec3(0, terrain.getInterpolatedHeight(wolfPos.x, wolfPos.z), 0));
 
-	// render the wolf
+	//render stone and texture
+	glBindTexture(GL_TEXTURE_2D, idTexStone);
+	m = matrixView;
+	m = translate(matrixView, /*vec3(-2.2, 0.5, 0.4)); */ vec3(-2.6, terrain.getInterpolatedHeight(-2, 1.6), -1));
+	m = scale(m, vec3(0.01f, 0.01f, 0.01f));
+	stone.render(m);
+
+	// render the wolf and Texture
+	glBindTexture(GL_TEXTURE_2D, idTexWolf);
 	m = matrixView;
 	m = translate(m, wolfPos + amendY);
 	wolf.render(m);
@@ -150,11 +201,7 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	m = rotate(m, radians(70.f), vec3(0.f, 1.f, 0.f));
 	tree.render(m);
 
-	//render stone
-	m = matrixView;
-	m = translate(matrixView, /*vec3(-2.2, 0.5, 0.4));*/vec3(-2.6, terrain.getInterpolatedHeight(-2, 1.6), -1));
-	m = scale(m, vec3(0.01f, 0.01f, 0.01f));
-	stone.render(m);
+
 }
 
 void onRender()

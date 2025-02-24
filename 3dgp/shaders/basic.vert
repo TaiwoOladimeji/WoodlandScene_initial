@@ -13,10 +13,14 @@ uniform vec3 materialAmbient;
 
 in vec3 aVertex;
 in vec3 aNormal;
+in vec2 aTexCoord;
+
 
 out vec4 color;
 out vec4 position;
 out vec3 normal;
+out vec2 texCoord0;
+
 
 
 // Light declarations
@@ -49,6 +53,8 @@ void main(void)
 	color = vec4(0, 0, 0, 1);
 	color += AmbientLight(lightAmbient);
 
+	// calculate texture coordinate
+	texCoord0 = aTexCoord;
 
 	/*
 	// temporary light and material calculation
