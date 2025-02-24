@@ -22,6 +22,12 @@ vec3 wolfVel = vec3(0, 0, 0);
 // 3D Models
 C3dglTerrain terrain;
 C3dglModel wolf, tree, stone;
+C3dglSkyBox skybox;
+
+// night (0) or day (1)
+GLuint dayLight = 1;
+// light attenuation
+GLuint lightAtt = 0;
 
 // texture ids
 GLuint idTexTerrain;
@@ -40,6 +46,25 @@ float accel = 4.f;		// camera acceleration
 vec3 _acc(0), _vel(0);	// camera acceleration and velocity vectors
 float _fov = 60.f;		// field of view (zoom)
 
+void initLights(GLuint dayLight)
+{
+	program.sendUniform("lightAmbient.color", vec3(dayLight * 0.1, dayLight * 0.1, dayLight * 0.1));
+	program.sendUniform("lightEmissive.color", vec3(0.0, 0.0, 0.0));
+	program.sendUniform("lightDir.direction", vec3(1.0, 0.5, 1.0));
+	program.sendUniform("lightDir.diffuse", vec3(dayLight * 1.0, dayLight * 1.0, dayLight * 1.0));
+
+	/*GLuint nightLight = 1 - dayLight;
+	program.sendUniform("lightPoint1.diffuse", vec3(nightLight * 0.5, nightLight * 0.5, nightLight * 0.5));
+	program.sendUniform("lightPoint1.specular", vec3(nightLight * 1.0, nightLight * 1.0, nightLight * 1.0));
+	program.sendUniform("lightPoint2.diffuse", vec3(nightLight * 0.5, nightLight * 0.5, nightLight * 0.5));
+	program.sendUniform("lightPoint2.specular", vec3(nightLight * 1.0, nightLight * 1.0, nightLight * 1.0));
+	program.sendUniform("lightPoint3.diffuse", vec3(nightLight * 0.5, nightLight * 0.5, nightLight * 0.5));
+	program.sendUniform("lightPoint3.specular", vec3(nightLight * 1.0, nightLight * 1.0, nightLight * 1.0));
+	program.sendUniform("lightPoint4.diffuse", vec3(nightLight * 0.5, nightLight * 0.5, nightLight * 0.5));
+	program.sendUniform("lightPoint4.specular", vec3(nightLight * 1.0, nightLight * 1.0, nightLight * 1.0));
+	program.sendUniform("lightPoint5.diffuse", vec3(nightLight * 0.5, nightLight * 0.5, nightLight * 0.5));
+	program.sendUniform("lightPoint5.specular", vec3(nightLight * 1.0, nightLight * 1.0, nightLight * 1.0));*/
+}
 bool init()
 {
 	// rendering states
@@ -75,6 +100,15 @@ bool init()
 
 	// load your 3D models here!
 	// DON'T REMOVE ANYTHING - this code loads some objects and all tree textures
+	
+	// load Sky Box
+	if (!skybox.load("models\\TropicalSunnyDay\\TropicalSunnyDayFront1024.jpg",
+		"models\\TropicalSunnyDay\\TropicalSunnyDayLeft1024.jpg",
+		"models\\TropicalSunnyDay\\TropicalSunnyDayBack1024.jpg",
+		"models\\TropicalSunnyDay\\TropicalSunnyDayRight1024.jpg",
+		"models\\TropicalSunnyDay\\TropicalSunnyDayUp1024.jpg",
+		"models\\TropicalSunnyDay\\TropicalSunnyDayDown1024.jpg")) return false;
+
 	if (!terrain.load("models\\heightmap.png", 50)) return false;
 	if (!wolf.load("models\\wolf.dae")) return false;
 	if (!tree.load("models\\tree\\tree.3ds")) return false;
@@ -121,6 +155,15 @@ bool init()
 	// Send the texture info to the shaders
 	program.sendUniform("texture0", 0);
 
+	// setup lights:
+	initLights(dayLight);
+	program.sendUniform("lightAttOn", lightAtt);
+
+	// setup materials
+	program.sendUniform("materialAmbient", vec3(1.0, 1.0, 1.0));		// full power (note: ambient light is extremely dim)
+	program.sendUniform("materialDiffuse", vec3(1.0, 1.0, 1.0));
+	program.sendUniform("materialSpecular", vec3(0.0, 0.0, 0.0));
+
 	// Initialise the View Matrix (initial position of the camera)
 	matrixView = lookAt(
 		vec3(-2.0, 1.0, 3.0),
@@ -148,6 +191,23 @@ void done()
 void renderScene(mat4& matrixView, float time, float deltaTime)
 {
 	mat4 m;
+
+	program.sendUniform("lightAttOn", lightAtt);
+
+	if (dayLight)
+	{
+		// prepare ambient light for the skybox
+		program.sendUniform("lightAmbient.color", vec3(1.0, 1.0, 1.0));
+		program.sendUniform("materialAmbient", vec3(1.0, 1.0, 1.0));
+		program.sendUniform("materialDiffuse", vec3(0.0, 0.0, 0.0));
+
+		// render the skybox
+		m = matrixView;
+		skybox.render(m);
+
+		// revert normal light after skybox
+		program.sendUniform("lightAmbient.color", vec3(0.4, 0.4, 0.4));
+	}
 
 	// setup materials
 	program.sendUniform("materialDiffuse", vec3(1.0f, 1.0f, 1.0f));	// white background for textures
@@ -201,6 +261,8 @@ void renderScene(mat4& matrixView, float time, float deltaTime)
 	m = rotate(m, radians(70.f), vec3(0.f, 1.f, 0.f));
 	tree.render(m);
 
+
+	string uniName = "lightPoint1.position";
 
 }
 

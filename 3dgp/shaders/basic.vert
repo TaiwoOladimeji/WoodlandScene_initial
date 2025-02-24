@@ -30,7 +30,7 @@ struct AMBIENT
 	//int on;
 	vec3 color;
  };
- uniform AMBIENT lightAmbient;
+ uniform AMBIENT lightAmbient, lightEmissive;
 
  vec4 AmbientLight(AMBIENT light)
  {
@@ -55,12 +55,4 @@ void main(void)
 
 	// calculate texture coordinate
 	texCoord0 = aTexCoord;
-
-	/*
-	// temporary light and material calculation
-	// DELETE THE FOLLOWING THREE LINES BEFORE PROCEEDING!
-	vec3 L = normalize(mat3(matrixView) * vec3(-1.0, 0.5, 1.0));
-	float NdotL = max(dot(normal, L), 0.0);
-	color += vec4(materialDiffuse, 1) * NdotL + vec4(materialAmbient, 1);
-	*/
 }
